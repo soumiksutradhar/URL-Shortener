@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Shortener</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5;
+           display: flex; align-items: center; justify-content: center;
+           min-height: 100vh; }
+    .card { background: #fff; border-radius: 12px; padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,.08); width: min(420px, 90vw); }
+    h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+    input { width: 100%; padding: .75rem 1rem; border: 1.5px solid #ddd;
+            border-radius: 8px; font-size: 1rem; margin-bottom: .75rem; }
+    input:focus { outline: none; border-color: #4f46e5; }
+    button { width: 100%; padding: .75rem; background: #4f46e5; color: #fff;
+             border: none; border-radius: 8px; font-size: 1rem;
+             cursor: pointer; transition: background .15s; }
+    button:hover { background: #4338ca; }
+    button:disabled { background: #a5b4fc; cursor: not-allowed; }
+    #result { margin-top: 1.25rem; padding: 1rem; background: #f0fdf4;
+              border: 1.5px solid #86efac; border-radius: 8px;
+              display: none; word-break: break-all; }
+    #error  { margin-top: 1.25rem; padding: 1rem; background: #fef2f2;
+              border: 1.5px solid #fca5a5; border-radius: 8px;
+              display: none; color: #991b1b; }
+    a { color: #4f46e5; text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔗 URL Shortener</h1>
+    <input id="url-input" type="url" placeholder="https://example.com/very/long/url"
+           autocomplete="off"/>
+    <button id="btn" onclick="shorten()">Shorten</button>
+    <div id="result"></div>
+    <div id="error"></div>
+  </div>
+
+  <script>
+    const API = "https://39jwc74md3.execute-api.ap-south-1.amazonaws.com";
+
+    async function shorten() {
+      const url = document.getElementById("url-input").value.trim();
+      const btn = document.getElementById("btn");
+      const res = document.getElementById("result");
+      const err = document.getElementById("error");
+
+      res.style.display = "none";
+      err.style.display = "none";
+
+      if (!url) { showError("Please enter a URL."); return; }
+
+      btn.disabled = true;
+      btn.textContent = "Shortening…";
+
+      try {
+        const r = await fetch(`${API}/shorten`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || "Unknown error");
+
+        res.innerHTML = `Short URL: <a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a>
+                         <br><small style="color:#6b7280">Click card to copy</small>`;
+        res.style.display = "block";
+        res.onclick = () => navigator.clipboard.writeText(data.shortUrl);
+
+      } catch (e) {
+        showError(e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Shorten";
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById("error");
+      el.textContent = msg;
+      el.style.display = "block";
+    }
+
+    document.getElementById("url-input")
+      .addEventListener("keydown", e => e.key === "Enter" && shorten());
+  </script>
+</body>
+</html>
