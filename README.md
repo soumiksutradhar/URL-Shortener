@@ -4,4 +4,4 @@ A production-style serverless URL shortener built to demonstrate DevOps and Plat
 
 ## Architecture
 
-![Architecture Diagram](URL shortener.png)
+![Architecture Diagram](architecture.png)
