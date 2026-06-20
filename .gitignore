@@ -16,7 +16,3 @@ __pycache__/
 # SSH Keys
 *.pem
 *.pem:Zone.Identifier
-
-# Readme file images
-*.png
-*.png:Zone.Identifier
